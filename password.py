@@ -1,141 +1,77 @@
-
 class Password:
-
     SYMBOLS = ["!", "@", "#", "$", "%", "^", "&", "*", "(", ")"]
 
     def __init__(self):
-
         self.password_elements = []
-        self.password = ""
         self.generated_password = ""
 
-
-
     def user_set_password(self):
-        self.password = input("Please Enter a password with at least 8 chacters\nwhich include 1 Uppercase, 1 Lowercase and 1 number: ")
+        self.password = input("Please Enter a password with at least 8 characters\nwhich include 1 Uppercase, 1 Lowercase, and 1 number: ")
         return self.password
 
-
-
-
-    def decide_params(self) -> list:
-
-        import random
+    def decide_params(self):
+        from random import randint
         minimum_number = 1
-        num_of_char = random.randint(10, 15)
-        num_of_lowercase = random.randint(minimum_number, max(num_of_char - 3, minimum_number))
-        diff = num_of_char - num_of_lowercase
-        num_of_uppercase = random.randint(minimum_number, max(diff, minimum_number))
-        diff -= num_of_uppercase
-        num_of_numbers = random.randint(minimum_number, max(diff, minimum_number))
+        num_of_char = randint(10, 15)
+        num_of_lowercase = randint(minimum_number, max(num_of_char - 3, minimum_number))
+        num_of_uppercase = randint(minimum_number, max(num_of_char - num_of_lowercase - 2, minimum_number))
+        num_of_numbers = randint(minimum_number, max(num_of_char - num_of_lowercase - num_of_uppercase - 1, minimum_number))
+        num_of_symbols = num_of_char - (num_of_lowercase + num_of_uppercase + num_of_numbers)
 
-        sum_of_characters_until_now = num_of_lowercase + num_of_uppercase + num_of_numbers
+        return [num_of_lowercase, num_of_uppercase, num_of_numbers, num_of_symbols]
 
-        if num_of_char > sum_of_characters_until_now:
-            num_of_symbols = num_of_char - sum_of_characters_until_now
-            return [num_of_lowercase, num_of_uppercase, num_of_numbers, num_of_symbols]
+    def generate_password(self, params):
+        from random import randint, choice, shuffle
+        char_types = [('a', 'z'), ('A', 'Z'), ('0', '9'), (None, None)]  # Symbol is handled separately
+        for i, (start, end) in enumerate(char_types):
+            if start and end:
+                self.password_elements.extend([chr(randint(ord(start), ord(end))) for _ in range(params[i])])
+            else:
+                self.password_elements.extend([choice(self.SYMBOLS) for _ in range(params[i])])
 
-        else:
-            return [num_of_lowercase, num_of_uppercase, num_of_numbers]
-
-
-
-    def generate_password(self, params: list):
-
-        if not params:
-            raise ValueError("Parameters must be a list")
-        for param in params:
-            if not isinstance(param, int):
-                raise ValueError("Every parameter must be a full number")
-
-        import random
-        if len(params) == 4:
-            for i in range(0, params[0]):
-                self.password_elements.append(chr(random.randint(ord("a"), ord("z"))))
-            for i in range(0, params[1]):
-                self.password_elements.append(chr(random.randint(ord("A"), ord("Z"))))
-            for i in range(0, params[2]):
-                self.password_elements.append(str(random.randint(0, 9)))
-            for i in range(0, params[3]):
-                    self.password_elements.append(random.choice(self.SYMBOLS))
-        else:
-            for i in range(0, params[0]):
-                self.password_elements.append(chr(random.randint(ord("a"), ord("z"))))
-            for i in range(0, params[1]):
-                self.password_elements.append(chr(random.randint(ord("A"), ord("Z"))))
-            for i in range(0, params[2]):
-                self.password_elements.append(str(random.randint(0, 9)))
-
-        random.shuffle(self.password_elements)
-        for e in self.password_elements:
-            self.generated_password += e
-
+        shuffle(self.password_elements)
+        self.generated_password = ''.join(self.password_elements)
         return self.generated_password
 
-
-    def check_password(self, password:str):
-
+    def check_password(self, password):
         if not password:
             raise ValueError("Password cannot be empty.")
-        if not isinstance(password, str):
-            raise ValueError("Password must be a string")
         if len(password) < 8:
-            raise ValueError("password must be 8 character or more")
-
-
-        has_lowercase = False
-        has_uppercase = False
-        has_number = False
-
-        for char in password:
-            if char.islower():
-                has_lowercase = True
-            elif char.isupper():
-                has_uppercase = True
-            elif char.isdigit():
-                has_number = True
-
-            if has_lowercase and has_uppercase and has_number:
-                break
-
+            raise ValueError("Password must be 8 characters or more.")
+        
+        has_lowercase = any(char.islower() for char in password)
+        has_uppercase = any(char.isupper() for char in password)
+        has_number = any(char.isdigit() for char in password)
         if not has_lowercase:
-            return "Password must have at least 1 Lowercase letter."
-        elif not has_uppercase:
-            return "Password must have at least 1 Uppercase letter."
-        elif not has_number:
-            return "Password must have at least 1 Number."
+            raise ValueError("Password must have at least 1 lowercase letter.")
+        if not has_uppercase:
+            raise ValueError("Password must have at least 1 upperca[?12;4$yse letter.")
+        if not has_number:
+            raise ValueError("Password must have at least 1 number.")
 
         return True
 
-
     def reset_password(self):
-        pass
-
-
-
-
+        # Placeholder for password reset functionality
+        self.password_elements = []
+        self.generated_password = ""
 
 if __name__ == '__main__':
-
     try:
-        password = Password()
-        params = password.decide_params()
-        passwd = password.generate_password(params)
-        print(passwd)
+        password_manager = Password()
+        params = password_manager.decide_params()
+        generated_password = password_manager.generate_password(params)
+        print(generated_password)
 
-        print(password.check_password(passwd))
-        user_password = password.user_set_password()
-        print(password.check_password(user_password))
+        if password_manager.check_password(generated_password):
+            print("Generated password is valid.")
+        
+        user_password = password_manager.user_set_password()
+        if password_manager.check_password(user_password):
+            print("User-set password is valid.")
 
     except ValueError as ve:
         print(ve)
     except Exception as err:
         print(err)
-
-
-
-
-
-
-
 
