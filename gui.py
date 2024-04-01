@@ -11,8 +11,7 @@ def generate_and_insert_password():
 
     password_entry.delete(0,END)
     password = Password()
-    params = password.decide_params()
-    generated_password = password.generate_password(params)
+    generated_password = password.generate_password()
     password_entry.insert(0,generated_password)
     return
 
